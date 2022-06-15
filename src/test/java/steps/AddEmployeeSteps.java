@@ -1,6 +1,7 @@
 package steps;
 
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.cucumber.java.it.Ma;
@@ -8,15 +9,22 @@ import org.bouncycastle.crypto.agreement.kdf.ConcatenationKDFGenerator;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import pages.AddEmployeePage;
 import utils.CommonMethods;
 import utils.Constants;
+import utils.DbUtils;
 import utils.ExcelReader;
 
+import java.sql.Connection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class AddEmployeeSteps extends CommonMethods {
+    String empId;
+    String firstName;
+    String dbFirstName;
+    String dbEmpId;
 
     @When("user clicks on PIM option")
     public void user_clicks_on_pim_option() {
@@ -128,5 +136,30 @@ public class AddEmployeeSteps extends CommonMethods {
             Thread.sleep(2000);
         }
     }
+    @And("user grabs the employee id")
+    public void userGrabsTheEmployeeId() {
 
+       empId=addEmployeePage.empIDLocator.getAttribute("value");
+       firstName=addEmployeePage.firstNameField.getAttribute("value");
+    }
+
+    @And("user query the database for same employee id")
+    public void userQueryTheDatabaseForSameEmployeeId() {
+        String query="select * from hs_hr_employees where employee_id='"+empId+"'";
+        List<Map<String,String>> tableData=DbUtils.getDataFromDB(query);
+        dbFirstName=DbUtils.getDataFromDB(query).get(0).get("emp_firstname");
+        dbEmpId=DbUtils.getDataFromDB(query).get(0).get("employee_id");
+
+
+
+    }
+
+
+    @Then("user verifies the results")
+    public void userVerifiesTheResults() {
+        System.out.println("Firstname from Front end : "+firstName);
+        System.out.println("Firstname from Front end : "+dbFirstName);
+        Assert.assertEquals(firstName,dbFirstName);
+        Assert.assertEquals(empId,dbEmpId);
+    }
 }
